@@ -72,7 +72,7 @@ void clustering(DMat Vt, double* S)
 		
 		clustered[closestVector] = true;
 		
-		/* Etape 3 : Calcul de la distance au cluster courant pour chaque vecteur non-clusteré */
+		/* Etape 3 : Calcul de la distance au cluster courant pour chaque vecteur non-clusteré et ajout */
 		
 		for (i = closestVector + 1; i < Vt->cols; i++)
 		{

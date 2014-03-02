@@ -23,8 +23,8 @@ int main(int argc, char *argv[])
 	
 	/* Etape 1 : Extraction des images et construction de la matrice A */
 	
-	//if (!extract_images(filename, 10, "tmp/"))
-	//	return EXIT_FAILURE;
+	if (!extract_images(filename, 10, "tmp/"))
+		return EXIT_FAILURE;
 	
 	DMat A;
 	bool transposed;
