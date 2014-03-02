@@ -24,11 +24,20 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	
 	DMat A;
+	bool transposed;
 	
-	if (!extract_features_matrix(&A, "tmp/"))
+	if (!extract_features_matrix(&A, "tmp/", &transposed))
 		return EXIT_FAILURE;
 	
+	SMat A_sparse = svdConvertDtoS(A);
 	svdFreeDMat(A);
+	
+	SVDRec rec = svdLAS2A(A_sparse, A_sparse->cols);
+	svdFreeSMat(A_sparse);
+	
+	DMat Vt = transposed ? rec->Ut : rec->Vt;
+	
+	svdFreeSVDRec(rec);
 	
 	return EXIT_SUCCESS;
 }

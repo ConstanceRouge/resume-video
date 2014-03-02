@@ -5,7 +5,7 @@
 #include <stb_image.h>
 #include <string.h>
 
-bool extract_features_matrix(DMat* matrix, const char* imagefolder)
+bool extract_features_matrix(DMat* matrix, const char* imagefolder, bool* transposed)
 {
 	struct dirent** namelist;
 	int n = scandir(imagefolder, &namelist, 0, alphasort);
@@ -32,14 +32,24 @@ bool extract_features_matrix(DMat* matrix, const char* imagefolder)
 		
 		unsigned char* imageData = stbi_load(filename, &width, &height, &comp, STBI_rgb);
 		
-		construct_vector(mat->value[i], imageData, width, height);
+		construct_vector(mat->value[i-2], imageData, width, height);
 		
 		stbi_image_free(imageData);
 		free(namelist[i]);
 	}
 	
-	*matrix = svdTransposeD(mat);
-	svdFreeDMat(mat);
+	if (mat->rows >= mat->cols)
+	{
+		*matrix = mat;
+		*transposed = true;
+	}
+	
+	else
+	{
+		*matrix = svdTransposeD(mat);
+		*transposed = false;
+		svdFreeDMat(mat);
+	}
 	
 	free(namelist);
 	return true;
