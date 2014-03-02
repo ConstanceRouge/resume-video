@@ -87,7 +87,7 @@ Cluster* clustering(DMat Vt, double* S, int* clusterCount)
 			double minDistance = min_distance_to_cluster(Vt_sorted, S, i, cluster);
 			
 			if (clusterCounter == 1)
-			{				
+			{
 				if (cluster.averageInternalDistance == 0.0 || minDistance / cluster.averageInternalDistance < 5.0)
 				{
 					add_frame_to_cluster(Vt_sorted, i, &cluster, normes, minDistance);

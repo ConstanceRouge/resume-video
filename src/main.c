@@ -64,6 +64,20 @@ int main(int argc, char *argv[])
 		Shot longestShot = find_longest_shot(clusters[i]);
 		double length = ((double) (10 * longestShot.frameCount)) / ((double) fps);
 		
+		{
+			char command[128] = {'\0'};
+			
+			sprintf(command, "mkdir -p resume/%d", i);
+			system(command);
+			
+			int j;
+			for (j = 0; j < clusters[i].frameCount; j++)
+			{
+				sprintf(command, "cp tmp/output%08d.png resume/%d", clusters[i].frames[j] + 1, i);
+				system(command);
+			}
+		}
+		
 		if (length >= 1.0)
 		{
 			char command[128] = {'\0'};
