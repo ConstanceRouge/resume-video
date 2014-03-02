@@ -1,6 +1,7 @@
 #include "common.h"
 #include "videoutils.h"
 #include "imagefeatures.h"
+#include "clustering.h"
 
 #include <unistd.h>
 
@@ -20,14 +21,18 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 	
-	if (!extract_images(filename, 10, "tmp/"))
-		return EXIT_FAILURE;
+	/* Etape 1 : Extraction des images et construction de la matrice A */
+	
+	//if (!extract_images(filename, 10, "tmp/"))
+	//	return EXIT_FAILURE;
 	
 	DMat A;
 	bool transposed;
 	
 	if (!extract_features_matrix(&A, "tmp/", &transposed))
 		return EXIT_FAILURE;
+	
+	/* Etape 2 : SVD sur A pour obtenir Vt */
 	
 	SMat A_sparse = svdConvertDtoS(A);
 	svdFreeDMat(A);
@@ -36,6 +41,10 @@ int main(int argc, char *argv[])
 	svdFreeSMat(A_sparse);
 	
 	DMat Vt = transposed ? rec->Ut : rec->Vt;
+	
+	/* Etape 3 : Regroupement des images en clusters */
+	
+	clustering(Vt, rec->S);
 	
 	svdFreeSVDRec(rec);
 	

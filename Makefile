@@ -12,8 +12,9 @@ all: $(EXEC)
 bin/resume-video: $(OBJ)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
+obj/clustering.o: include/common.h include/clustering.h
 obj/imagefeatures.o: include/common.h include/imagefeatures.h
-obj/main.o: include/common.h include/videoutils.h include/imagefeatures.h
+obj/main.o: include/common.h include/clustering.h include/imagefeatures.h include/videoutils.h
 obj/videoutils.o: include/common.h include/videoutils.h
 
 obj/stb_image.o: libs/stb_image/stb_image.c
