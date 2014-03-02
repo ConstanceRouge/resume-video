@@ -23,7 +23,12 @@ int main(int argc, char *argv[])
 	
 	/* Etape 1 : Extraction des images et construction de la matrice A */
 	
-	if (!extract_images(filename, 10, "tmp/"))
+	int fps;
+	
+	if (!get_video_fps(filename, &fps))
+		return EXIT_FAILURE;
+	
+	if (!extract_images(filename, 10, fps, "tmp/"))
 		return EXIT_FAILURE;
 	
 	DMat A;
@@ -37,14 +42,39 @@ int main(int argc, char *argv[])
 	SMat A_sparse = svdConvertDtoS(A);
 	svdFreeDMat(A);
 	
-	SVDRec rec = svdLAS2A(A_sparse, A_sparse->cols);
+	SVDRec rec = svdLAS2A(A_sparse, 0);
 	svdFreeSMat(A_sparse);
 	
 	DMat Vt = transposed ? rec->Ut : rec->Vt;
 	
 	/* Etape 3 : Regroupement des images en clusters */
 	
-	clustering(Vt, rec->S);
+	int clusterCount = 0;
+	Cluster* clusters = clustering(Vt, rec->S, &clusterCount);
+	
+	/* Etape 4 : On ne garde que les clusters dont la prise la plus longue dure au moins une seconde */
+	
+	int numValidClusters = 0;
+	system("mkdir -p resume");
+	system("rm -rf resume/*");
+	
+	int i;
+	for (i = 0; i < clusterCount; i++)
+	{
+		Shot longestShot = find_longest_shot(clusters[i]);
+		double length = ((double) (10 * longestShot.frameCount)) / ((double) fps);
+		
+		if (length >= 1.0)
+		{
+			char command[128] = {'\0'};
+			sprintf(command, "cp tmp/output%08d.png resume/", longestShot.frames[longestShot.frameCount / 2] + 1);
+			system(command);
+			
+			numValidClusters++;
+		}
+	}
+	
+	printf("%d cluster(s) retenu(s).\n", numValidClusters);
 	
 	svdFreeSVDRec(rec);
 	

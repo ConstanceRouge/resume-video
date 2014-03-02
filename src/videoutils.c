@@ -30,13 +30,8 @@ bool get_video_fps(const char* filename, int* fps)
 	return true;
 }
 
-bool extract_images(const char* filename, int interval, const char* imagefolder)
+bool extract_images(const char* filename, int interval, int fps, const char* imagefolder)
 {
-	int fps;
-	
-	if (!get_video_fps(filename, &fps))
-		return false;
-	
 	char command[128] = {'\0'};
 	
 	sprintf(command, "mkdir -p %s", imagefolder);

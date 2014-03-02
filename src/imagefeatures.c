@@ -85,7 +85,7 @@ void construct_histogram(double* vector, unsigned char* imageData, int width, in
 			int g = imageData[3 * (width * y + x) + 1] / 52;
 			int b = imageData[3 * (width * y + x) + 2] / 52;
 			
-			histogram[25 * r + 5 * g + b]++;
+			histogram[25 * r + 5 * g + b] += 1.0;
 		}
 	}
 	
