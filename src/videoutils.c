@@ -30,12 +30,23 @@ bool get_video_fps(const char* filename, int* fps)
 	return true;
 }
 
-void extract_images(const char* filename, int interval, int fps, const char* folder)
+bool extract_images(const char* filename, int interval, const char* imagefolder)
 {
-	char command[128] = {'\0'};
-	sprintf(command, "ffmpeg -i %s -vf \"select=not(mod(n\\,%d)),setpts=N/(%d*TB)\" %s/output%%d.png", filename, interval, fps, folder);
+	int fps;
 	
+	if (!get_video_fps(filename, &fps))
+		return false;
+	
+	char command[128] = {'\0'};
+	
+	sprintf(command, "mkdir -p %s", imagefolder);
 	system(command);
 	
-	printf("plop\n");
+	sprintf(command, "rm -rf %s/*", imagefolder);
+	system(command);
+	
+	sprintf(command, "ffmpeg -i %s -vf \"select=not(mod(n\\,%d)),setpts=N/(%d*TB)\" %s/output%%08d.png", filename, interval, fps, imagefolder);
+	system(command);
+	
+	return true;
 }
