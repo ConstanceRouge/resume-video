@@ -8,7 +8,10 @@ int compare_normes(const void* a, const void* b)
 	const IntDoublePair* da = (const IntDoublePair*) a;
 	const IntDoublePair* db = (const IntDoublePair*) b;
 	
-	return (da->v > db->v) - (da->v < db->v);
+	if (fabs(da->v - db->v) > 0.0000001)
+		return (da->v > db->v) - (da->v < db->v);
+	else
+		return compare_ints(&(da->i), &(db->i));
 }
 
 int compare_ints(const void* a, const void* b)
@@ -126,58 +129,6 @@ Cluster* clustering(DMat Vt, double* S, int* clusterCount)
 	return clusters;
 }
 
-Shot find_longest_shot(Cluster cluster)
-{
-	int shotCount = 0;
-	Shot* shots = find_shots(cluster, &shotCount);
-	
-	int longestShot = 0;
-	int i;
-	
-	for (i = 1; i < shotCount; i++)
-	{
-		if (shots[i].frameCount > shots[longestShot].frameCount)
-			longestShot = i;
-	} 
-	
-	return shots[longestShot];
-}
-
-Shot* find_shots(Cluster cluster, int* shotCount)
-{
-	Shot* shots = malloc(sizeof(Shot));
-	
-	shots[0].frameCount = 1;
-	shots[0].frames = malloc(sizeof(int));
-	shots[0].frames[0] = cluster.frames[0];
-	
-	int shotCounter = 1;
-	
-	int i;
-	for (i = 1; i < cluster.frameCount; i++)
-	{
-		if (cluster.frames[i] == cluster.frames[i-1] + 1)
-		{
-			shots[shotCounter-1].frameCount++;
-			shots[shotCounter-1].frames = realloc(shots[shotCounter-1].frames, shots[shotCounter-1].frameCount * sizeof(int));
-			shots[shotCounter-1].frames[shots[shotCounter-1].frameCount-1] = cluster.frames[i];
-		}
-		
-		else
-		{
-			shotCounter++;
-			shots = realloc(shots, shotCounter * sizeof(Shot));
-			
-			shots[shotCounter-1].frameCount = 1;
-			shots[shotCounter-1].frames = malloc(sizeof(int));
-			shots[shotCounter-1].frames[0] = cluster.frames[i];
-		}
-	}
-	
-	*shotCount = shotCounter;
-	return shots;
-}
-
 double col_norme(DMat Vt, double* S, int i)
 {
 	double sum = 0.0;
@@ -243,4 +194,105 @@ void add_frame_to_cluster(DMat Vt, int i, Cluster* cluster, IntDoublePair* norme
 	}
 	
 	cluster->averageInternalDistance = ((((double) cluster->frameCount) - 1.0) * cluster->averageInternalDistance + minDistance) / ((double) cluster->frameCount);
+}
+
+Shot find_longest_shot(Cluster cluster)
+{
+	int shotCount = 0;
+	Shot* shots = find_shots(cluster, &shotCount);
+	
+	int longestShot = 0;
+	int i;
+	
+	for (i = 1; i < shotCount; i++)
+	{
+		if (shots[i].frameCount > shots[longestShot].frameCount)
+			longestShot = i;
+	} 
+	
+	return shots[longestShot];
+}
+
+Shot* find_shots(Cluster cluster, int* shotCount)
+{
+	Shot* shots = malloc(sizeof(Shot));
+	
+	shots[0].frameCount = 1;
+	shots[0].frames = malloc(sizeof(int));
+	shots[0].frames[0] = cluster.frames[0];
+	
+	int shotCounter = 1;
+	
+	int i;
+	for (i = 1; i < cluster.frameCount; i++)
+	{
+		if (cluster.frames[i] == cluster.frames[i-1] + 1)
+		{
+			shots[shotCounter-1].frameCount++;
+			shots[shotCounter-1].frames = realloc(shots[shotCounter-1].frames, shots[shotCounter-1].frameCount * sizeof(int));
+			shots[shotCounter-1].frames[shots[shotCounter-1].frameCount-1] = cluster.frames[i];
+		}
+		
+		else
+		{
+			shotCounter++;
+			shots = realloc(shots, shotCounter * sizeof(Shot));
+			
+			shots[shotCounter-1].frameCount = 1;
+			shots[shotCounter-1].frames = malloc(sizeof(int));
+			shots[shotCounter-1].frames[0] = cluster.frames[i];
+		}
+	}
+	
+	*shotCount = shotCounter;
+	return shots;
+}
+
+double col_distance_col(DMat Vt, double* S, int i, double* col)
+{
+	double sum = 0.0;
+	
+	int n = Vt->rows;
+	if (n > 150)
+		n = 150;
+	
+	int l;
+	for (l = 0; l < n; l++)
+	{
+		sum += S[l] * (Vt->value[l][i] - col[l]) * (Vt->value[l][i] - col[l]);
+	}
+	
+	return sqrt(sum);
+}
+
+int find_best_frame(Cluster cluster, DMat Vt, double* S)
+{
+	int i, j;
+	
+	double* meanColumn = malloc(Vt->rows * sizeof(double));
+	double invFrameCount = 1.0 / ((double) cluster.frameCount);
+	
+	for (i = 0; i < cluster.frameCount; i++)
+	{
+		for (j = 0; j < Vt->rows; j++)
+		{
+			meanColumn[j] += invFrameCount * Vt->value[j][cluster.frames[i]];
+		}
+	}
+	
+	int bestFrame = cluster.frames[0];
+	double bestFrameDistance = col_distance_col(Vt, S, bestFrame, meanColumn);
+	
+	for (i = 1; i < cluster.frameCount; i++)
+	{
+		double d = col_distance_col(Vt, S, cluster.frames[i], meanColumn);
+		
+		if (d < bestFrameDistance)
+		{
+			bestFrame = cluster.frames[i];
+			bestFrameDistance = d;
+		}
+	}
+	
+	return bestFrame;
 }

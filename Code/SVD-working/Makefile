@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -g -Iinclude -Ilibs/stb_image -Ilibs/SVDLIBC
 LDFLAGS=-lm
-EXEC=bin/resume-video
+EXEC=bin/SVD-working
 SRC= $(wildcard src/*.c)
 OBJ= $(subst src/,obj/,$(SRC:.c=.o))
 
@@ -9,7 +9,7 @@ OBJ+= obj/stb_image.o obj/svdlib.o obj/svdutil.o obj/las2.o
 
 all: $(EXEC)
 
-bin/resume-video: $(OBJ)
+bin/SVD-working: $(OBJ)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 obj/clustering.o: include/common.h include/clustering.h

@@ -24,11 +24,12 @@ int main(int argc, char *argv[])
 	/* Etape 1 : Extraction des images et construction de la matrice A */
 	
 	int fps;
+	int interval = 10;
 	
 	if (!get_video_fps(filename, &fps))
 		return EXIT_FAILURE;
 	
-	if (!extract_images(filename, 10, fps, "tmp/"))
+	if (!extract_images(filename, interval, fps, "tmp/"))
 		return EXIT_FAILURE;
 	
 	DMat A;
@@ -62,7 +63,7 @@ int main(int argc, char *argv[])
 	for (i = 0; i < clusterCount; i++)
 	{
 		Shot longestShot = find_longest_shot(clusters[i]);
-		double length = ((double) (10 * longestShot.frameCount)) / ((double) fps);
+		double length = ((double) (interval * longestShot.frameCount)) / ((double) fps);
 		
 		{
 			char command[128] = {'\0'};
@@ -78,10 +79,10 @@ int main(int argc, char *argv[])
 			}
 		}
 		
-		if (length >= 1.0)
+		if (length >= 0.75)
 		{
 			char command[128] = {'\0'};
-			sprintf(command, "cp tmp/output%08d.png resume/", longestShot.frames[longestShot.frameCount / 2] + 1);
+			sprintf(command, "cp tmp/output%08d.png resume/", find_best_frame(clusters[i], Vt, rec->S) + 1);
 			system(command);
 			
 			numValidClusters++;
